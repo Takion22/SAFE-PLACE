@@ -1,0 +1,15 @@
+{
+  "type": "language_plugin",
+  "language": "Malagasy",
+  "corpus_size": 150843,
+  "vocabulary_size": 20000,
+  "representation": "TF-IDF",
+  "analyzer": "word",
+  "ngram_range": [
+    1,
+    1
+  ],
+  "source_vocabulary": "output/malagasy_vocabulary.json",
+  "source_corpus": "output/malagasy_clean.parquet",
+  "model_file": "malagasy_plugin.pkl"
+}

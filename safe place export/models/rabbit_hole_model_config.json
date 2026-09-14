@@ -1,0 +1,32 @@
+{
+  "model": "RandomForestClassifier",
+  "classes": [
+    "LOW",
+    "MEDIUM",
+    "HIGH"
+  ],
+  "features": [
+    "sequence_length",
+    "click_depth",
+    "session_time",
+    "unique_videos",
+    "repetition_score",
+    "diversity_score"
+  ],
+  "thresholds": {
+    "low_max": 0.2916733633344048,
+    "medium_max": 0.7228985856637736
+  },
+  "target_type": "derived_behavioral_weak_label",
+  "note": "LOW/MEDIUM/HIGH is a SafePlace-derived behavioral risk label, not an official YAUDIT label.",
+  "split": {
+    "method": "GroupShuffleSplit",
+    "group": "bot_id + topic",
+    "test_size": 0.2,
+    "random_state": 42
+  },
+  "metrics": {
+    "balanced_accuracy": 0.9834587707291659,
+    "macro_f1": 0.9832922492028452
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "model": "TF-IDF character ngrams + LinearSVC",
+  "language": "Malagasy",
+  "features": {
+    "analyzer": "char",
+    "ngram_range": [
+      3,
+      5
+    ],
+    "max_features": 20000
+  },
+  "classes": [
+    "negative",
+    "positive"
+  ],
+  "accuracy": 0.6336633663366337,
+  "dataset_size": 505,
+  "train_size": 404,
+  "test_size": 101
+}

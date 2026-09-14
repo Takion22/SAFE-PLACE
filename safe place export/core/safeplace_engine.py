@@ -1,68 +1,32 @@
 from pathlib import Path
 import sys
-import joblib
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-MODELS_DIR = BASE_DIR / "models"
 
-CORE_DIR = Path(__file__).resolve().parent
+# Permet d'importer les modules depuis la racine du projet.
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
-if str(CORE_DIR) not in sys.path:
-    sys.path.insert(0, str(CORE_DIR))
-
-from language_router import LanguageRouter
+from modules.RABBIT_HOLE import RabbitHoleModel
+from core.language_router import LanguageRouter
 
 
 class SafePlaceEngine:
 
     def __init__(self):
 
-        self.models_dir = MODELS_DIR
-
         # -------------------------------------------------
         # Rabbit Hole
         # -------------------------------------------------
 
-        rabbit_hole_file = (
-            self.models_dir
-            / "rabbit_hole_model.pkl"
-        )
-
-        if not rabbit_hole_file.exists():
-            raise FileNotFoundError(
-                f"Rabbit Hole model introuvable : "
-                f"{rabbit_hole_file}"
-            )
-
-        self.rabbit_hole_model = joblib.load(
-            rabbit_hole_file
-        )
-
-        # -------------------------------------------------
-        # Malagasy Plugin
-        # -------------------------------------------------
-
-        malagasy_file = (
-            self.models_dir
-            / "malagasy_plugin.pkl"
-        )
-
-        self.malagasy_plugin = None
-
-        if malagasy_file.exists():
-
-            self.malagasy_plugin = joblib.load(
-                malagasy_file
-            )
+        self.rabbit_hole = RabbitHoleModel()
 
         # -------------------------------------------------
         # Language Router
         # -------------------------------------------------
 
-        self.language_router = LanguageRouter(
-            malagasy_plugin=self.malagasy_plugin
-        )
+        self.language_router = LanguageRouter()
 
     # =====================================================
     # LANGUAGE
@@ -72,54 +36,12 @@ class SafePlaceEngine:
 
         return self.language_router.detect(text)
 
-    # =====================================================
-    # TEXT ROUTING
-    # =====================================================
-
     def route_text(self, text, language=None):
 
-        route = self.language_router.route(
+        return self.language_router.route(
             text,
             language=language
         )
-
-        result = {
-            "text": text,
-            "language": route["language"],
-            "target": route["target"]
-        }
-
-        # -------------------------------------------------
-        # Malagasy
-        # -------------------------------------------------
-
-        if (
-            route["language"] == "mg"
-            and self.malagasy_plugin is not None
-        ):
-
-            vectorizer = self.malagasy_plugin["vectorizer"]
-
-            vector = vectorizer.transform(
-                [text]
-            )
-
-            result["malagasy"] = {
-                "vector_shape": list(
-                    vector.shape
-                ),
-                "active_features": int(
-                    vector.nnz
-                ),
-                "vocabulary_size": int(
-                    self.malagasy_plugin.get(
-                        "vocabulary_size",
-                        0
-                    )
-                )
-            }
-
-        return result
 
     # =====================================================
     # RABBIT HOLE
@@ -127,68 +49,12 @@ class SafePlaceEngine:
 
     def analyze_rabbit_hole(self, metrics):
 
-        required_features = [
-            "sequence_length",
-            "click_depth",
-            "session_time",
-            "unique_videos",
-            "repetition_score",
-            "diversity_score"
-        ]
-
-        missing = [
-            feature
-            for feature in required_features
-            if feature not in metrics
-        ]
-
-        if missing:
-            raise ValueError(
-                f"Variables manquantes : {missing}"
-            )
-
-        import pandas as pd
-
-        X = pd.DataFrame(
-            [[
-                metrics["sequence_length"],
-                metrics["click_depth"],
-                metrics["session_time"],
-                metrics["unique_videos"],
-                metrics["repetition_score"],
-                metrics["diversity_score"]
-            ]],
-            columns=required_features
+        return self.rabbit_hole.predict(
+            metrics
         )
 
-        prediction = self.rabbit_hole_model.predict(X)[0]
-
-        result = {
-            "prediction": str(prediction)
-        }
-
-        if hasattr(
-            self.rabbit_hole_model,
-            "predict_proba"
-        ):
-
-            probabilities = (
-                self.rabbit_hole_model
-                .predict_proba(X)[0]
-            )
-
-            result["probabilities"] = {
-                str(label): float(probability)
-                for label, probability in zip(
-                    self.rabbit_hole_model.classes_,
-                    probabilities
-                )
-            }
-
-        return result
-
     # =====================================================
-    # HEALTH CHECK
+    # STATUS
     # =====================================================
 
     def status(self):
@@ -196,17 +62,63 @@ class SafePlaceEngine:
         return {
             "status": "ok",
             "components": {
-                "rabbit_hole": (
-                    self.rabbit_hole_model
-                    is not None
-                ),
-                "malagasy_plugin": (
-                    self.malagasy_plugin
-                    is not None
-                ),
-                "language_router": (
-                    self.language_router
-                    is not None
-                )
+                "language_router": True,
+                "rabbit_hole": True
             }
         }
+
+
+def main():
+
+    engine = SafePlaceEngine()
+
+    print("=" * 70)
+    print("SAFEPLACE ENGINE")
+    print("=" * 70)
+
+    print("\nSTATUS")
+    print(engine.status())
+
+    # -------------------------------------------------
+    # Language routing
+    # -------------------------------------------------
+
+    tests = [
+        "Cette vidéo est intéressante.",
+        "This video is interesting.",
+        "Mahafinaritra be ity horonantsary ity."
+    ]
+
+    for text in tests:
+
+        print("\nTEXT")
+        print(text)
+
+        print(
+            engine.route_text(text)
+        )
+
+    # -------------------------------------------------
+    # Rabbit Hole
+    # -------------------------------------------------
+
+    print("\nRABBIT HOLE")
+
+    metrics = {
+        "sequence_length": 120,
+        "click_depth": 120,
+        "session_time": 5000,
+        "unique_videos": 90,
+        "repetition_score": 0.30,
+        "diversity_score": 0.70
+    }
+
+    print(
+        engine.analyze_rabbit_hole(
+            metrics
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

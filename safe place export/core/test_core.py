@@ -1,4 +1,4 @@
-from safeplace_engine import SafePlaceEngine
+from core.safeplace_engine import SafePlaceEngine
 
 
 def main():
@@ -9,52 +9,29 @@ def main():
     print("SAFEPLACE CORE TEST")
     print("=" * 70)
 
-    # ---------------------------------------------
-    # Status
-    # ---------------------------------------------
-
     print("\nSTATUS")
     print(engine.status())
 
-    # ---------------------------------------------
-    # FR
-    # ---------------------------------------------
-
     print("\nFR")
-
     print(
         engine.route_text(
             "Cette vidéo est intéressante."
         )
     )
 
-    # ---------------------------------------------
-    # EN
-    # ---------------------------------------------
-
     print("\nEN")
-
     print(
         engine.route_text(
             "This video is interesting."
         )
     )
 
-    # ---------------------------------------------
-    # MG
-    # ---------------------------------------------
-
     print("\nMG")
-
     print(
         engine.route_text(
             "Mahafinaritra be ity horonantsary ity."
         )
     )
-
-    # ---------------------------------------------
-    # Rabbit Hole
-    # ---------------------------------------------
 
     print("\nRABBIT HOLE")
 
